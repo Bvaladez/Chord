@@ -7,9 +7,9 @@ type Node struct {
 type handlerFunc func(*Node)
 
 // Server type that is write only
-type handler chan<- handlerFunc
+type Handler chan<- handlerFunc
 
-func startNodeAccessor() handler {
+func startNodeAccessor() Handler {
 	// Create channel able to access object data, channel recieves handler funcions that take obj as param
 	ch := make(chan handlerFunc)
 	state := new(Node)

@@ -44,7 +44,16 @@ func rpcCall(address string, method string, request interface{}, response interf
 	return nil
 }
 
-func (h handler) Post(msg string, reply *Nothing) error {
+func (h Handler) Ping(null Nothing, reply *string) error {
+	finished := make(chan struct{})
+	h <- func(n *Node) {
+		*reply = "pong"
+	}
+	<-finished
+	return nil
+}
+
+func (h Handler) Post(msg string, reply *Nothing) error {
 	finished := make(chan struct{})
 	// Load function into server (Actor) to queue function call and access to state changes
 	h <- func(f *Node) {
@@ -55,7 +64,7 @@ func (h handler) Post(msg string, reply *Nothing) error {
 	return nil
 }
 
-func (h handler) Get(count int, reply *[]string) error {
+func (h Handler) Get(count int, reply *[]string) error {
 	finished := make(chan struct{})
 	h <- func(f *Node) {
 		if len(f.Messages) < count {

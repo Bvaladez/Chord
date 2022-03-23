@@ -5,8 +5,6 @@ import (
 	"log"
 )
 
-
-
 func main() {
 	var isServer bool
 	var isClient bool

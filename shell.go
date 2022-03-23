@@ -34,6 +34,8 @@ func shell(address string) {
 			cmdPort(args)
 		case "create":
 			cmdCreate(address)
+		case "ping":
+			cmdPing(address)
 		case "get":
 			n := 10
 			if len(args) == 2 {
@@ -43,7 +45,7 @@ func shell(address string) {
 				}
 			}
 			var messages []string
-			if err := rpcCall(address, "Server.Get", n, &messages); err != nil {
+			if err := rpcCall(address, "Handler.Get", n, &messages); err != nil {
 				log.Fatalf("calling Feed.Get: %v", err)
 			}
 			for _, elt := range messages {
@@ -56,7 +58,7 @@ func shell(address string) {
 				continue
 			}
 			var junk Nothing
-			if err := rpcCall(address, "Server.Post", args[1], &junk); err != nil {
+			if err := rpcCall(address, "Handler.Post", args[1], &junk); err != nil {
 				log.Fatalf("calling Server.Post: %v", err)
 			}
 		default:
@@ -88,4 +90,12 @@ func cmdPort(args []string) {
 
 func cmdCreate(address string) {
 	server(address)
+}
+
+func cmdPing(address string) {
+	var null Nothing
+	var response string
+	if err := rpcCall(address, "Handler.Ping", null, &response); err != nil {
+		log.Fatalf("calling Feed.Get: %v", err)
+	}
 }
