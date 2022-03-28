@@ -11,3 +11,4 @@ func printUsage() {
 	flag.PrintDefaults()
 	os.Exit(1)
 }
+

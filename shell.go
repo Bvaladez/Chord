@@ -4,23 +4,24 @@ import (
 	"bufio"
 	"log"
 	"os"
-	"strconv"
 	"strings"
 )
 
 func shell(address string) {
 	log.Printf("Starting interactive shell")
-	log.Printf("Commands are: get, post")
+	log.Printf("Node Address: %s", address)
 
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		line := scanner.Text()
 		line = strings.TrimSpace(line)
 
-		args := strings.SplitN(line, " ", 2)
+		args := strings.Split(line, " ")
 
 		if len(args) > 1 {
-			args[1] = strings.TrimSpace(args[1])
+			for i := range args {
+				args[i] = strings.TrimSpace(args[i])
+			}
 		} else if len(args) == 0 {
 			continue
 		}
@@ -34,33 +35,10 @@ func shell(address string) {
 			cmdPort(args)
 		case "create":
 			cmdCreate(address)
-		case "ping":
-			cmdPing(address)
 		case "get":
-			n := 10
-			if len(args) == 2 {
-				var err error
-				if n, err = strconv.Atoi(args[1]); err != nil {
-					log.Fatalf("parsing number of messages: %v", err)
-				}
-			}
-			var messages []string
-			if err := rpcCall(address, "Handler.Get", n, &messages); err != nil {
-				log.Fatalf("calling Feed.Get: %v", err)
-			}
-			for _, elt := range messages {
-				log.Println(elt)
-			}
-
+			cmdGet(args)
 		case "post":
-			if len(args) != 2 {
-				log.Printf("You must specify a message to post")
-				continue
-			}
-			var junk Nothing
-			if err := rpcCall(address, "Handler.Post", args[1], &junk); err != nil {
-				log.Fatalf("calling Server.Post: %v", err)
-			}
+			cmdPost(args)
 		default:
 			log.Printf("Command not recognized. Type help for a list of commands.")
 		}
@@ -82,20 +60,44 @@ func cmdQuit() {
 
 func cmdPort(args []string) {
 	if len(args) > 1 {
-		port = args[1]
+		PORT = args[1]
 	} else {
-		log.Printf("You must specify a port number to set. %s is default port", defaultPort)
+		log.Println("Specify port number\nUsage: port 3410")
 	}
 }
 
 func cmdCreate(address string) {
-	server(address)
+	node, accessor := startNodeAccessor(address)
+	go node.serve(accessor)
+	log.Printf("Now listening on %s", address)
 }
 
-func cmdPing(address string) {
-	var null Nothing
-	var response string
-	if err := rpcCall(address, "Handler.Ping", null, &response); err != nil {
-		log.Fatalf("calling Feed.Get: %v", err)
+func cmdGet(args []string) {
+	if len(args) != 3 {
+		log.Println("Must specify key in get call.")
 	}
+		var key = args[1]
+		var address = args[2]
+		var value string
+		if err := rpcCall(address, "Handler.Get", key, &value); err != nil {
+			log.Fatalf("calling Feed.Get: %v", err)
+		}
+		log.Printf("%s", value)
+}
+
+func cmdPost(args []string) {
+	if len(args) != 4 {
+		log.Printf("%d", len(args))
+		log.Printf("You must specify a key value and address in post call.")
+	}
+	var junk Nothing
+	Post := new(KVPost)
+	Post.Key = args[1]
+	Post.Value = args[2]
+	Post.ToAddress = args[3]
+
+	if err := rpcCall(Post.ToAddress, "Handler.Post", Post, &junk); err != nil {
+		log.Fatalf("calling Server.Post: %v", err)
+	}
+
 }

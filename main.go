@@ -2,10 +2,19 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 )
 
 func main() {
+	var port string
+	fmt.Println("Please enter port number.")
+	fmt.Scanln(&port)
+	address := DEFAULTHOST + ":" + port
+	shell(address)
+}
+
+func old_main() {
 	var isServer bool
 	var isClient bool
 	var address string
@@ -21,9 +30,9 @@ func main() {
 	switch flag.NArg() {
 	case 0:
 		if isClient {
-			address = defaultHost + ":" + defaultPort
+			address = DEFAULTHOST + ":" + PORT
 		} else {
-			address = ":" + defaultPort
+			address = ":" + PORT
 		}
 	case 1:
 		// User specified the address
@@ -34,6 +43,6 @@ func main() {
 	if isClient {
 		shell(address)
 	} else {
-		server(address)
+		//server(address)
 	}
 }
